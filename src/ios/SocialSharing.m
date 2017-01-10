@@ -208,7 +208,7 @@ static NSString *const kShareOptionUrl = @"url";
       NSString *messageWithoutLink = [linkEx stringByReplacingMatchesInString:message options:0 range:NSMakeRange(0, [message length]) withTemplate:@""];
       NSMutableArray *mutableArguments = [command.arguments mutableCopy];
       [mutableArguments replaceObjectAtIndex:0 withObject:messageWithoutLink];
-      command.arguments = [NSArray arrayWithArray:mutableArguments];
+      command = [[CDVInvokedUrlCommand alloc] initWithArguments:[NSArray arrayWithArray:mutableArguments] callbackId:command.callbackId className:command.className methodName:command.methodName];
     }
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1000 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
