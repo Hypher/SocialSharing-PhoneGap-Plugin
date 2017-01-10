@@ -199,6 +199,18 @@ static NSString *const kShareOptionUrl = @"url";
   // When shared through the default iOS widget (iOS Settings > Facebook) the message is prefilled already.
   NSString *message = [command.arguments objectAtIndex:0];
   if (message != (id)[NSNull null]) {
+    
+    // In case of image sharing + prefilled text containing a link:
+    // strip links from message, else Facebook would consider it as link sharing and will ignore image sharing
+    NSError *error;
+    NSRegularExpression *linkEx = [NSRegularExpression regularExpressionWithPattern:@"https?://.*?(?:\\s|$)" options:NSRegularExpressionCaseInsensitive error:&error];
+    if (!NSEqualRanges([linkEx rangeOfFirstMatchInString:message options:0 range:NSMakeRange(0, [message length])], NSMakeRange(NSNotFound, 0))) {
+      NSString *messageWithoutLink = [linkEx stringByReplacingMatchesInString:message options:0 range:NSMakeRange(0, [message length]) withTemplate:@""];
+      NSMutableArray *mutableArguments = [command.arguments mutableCopy];
+      [mutableArguments replaceObjectAtIndex:0 withObject:messageWithoutLink];
+      command.arguments = [NSArray arrayWithArray:mutableArguments];
+    }
+    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1000 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
       BOOL fbAppInstalled = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fb://"]]; // requires whitelisting on iOS9
       if (fbAppInstalled) {
